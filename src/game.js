@@ -198,6 +198,7 @@ export class Game {
     this.shopSel = 0;
     this.loadLevel(0);
     ui.title(true);
+    ui.onShopPick((i) => { if (this.mode === 'shop') this.shopPick = i; });
   }
 
   // ---------------------------------------------------------- level setup
@@ -265,7 +266,7 @@ export class Game {
       }
       case 'sign': {
         const v = add(makeProp('sign')); v.position.set(e.x, e.y, -1.0);
-        this.objects.push({ type: 'sign', x: e.x, y: e.y, text: e.text });
+        this.objects.push({ type: 'sign', x: e.x, y: e.y, text: e.text, touchText: e.touchText });
         break;
       }
       default: this.addEnemy(e.type, e.x, e.y);
@@ -727,8 +728,8 @@ export class Game {
         if (o.active) { o.halo.material.opacity = 0.5 + Math.sin(this.time * 3) * 0.12; if (Math.random() < 0.15) fx.burst(o.x, o.y + 1.8, 1, [0.4, 0.9, 1], { speed: 1.2, grav: -3, life: 1.2, size: 0.2 }); }
       } else if (o.type === 'merchant') {
         o.view.update(dt, p.x > o.x ? 1 : -1, 5);
-        if (d < 2.2 && dy < 1.5) { this.nearMerchant = o; hint = '↑  Trade with the merchant'; }
-      } else if (o.type === 'sign') { if (d < 1.6 && dy < 2) hint = o.text; }
+        if (d < 2.2 && dy < 1.5) { this.nearMerchant = o; hint = document.documentElement.classList.contains('touch') ? '▲  Push the pad up to trade' : '↑  Trade with the merchant'; }
+      } else if (o.type === 'sign') { if (d < 1.6 && dy < 2) hint = (this.touch ??= document.documentElement.classList.contains('touch')) && o.touchText ? o.touchText : o.text; }
       else if (o.type === 'portal') {
         const want = this.stats.rune ? 1 : 0;
         o.power += (want - o.power) * Math.min(1, dt * 2);
@@ -772,12 +773,13 @@ export class Game {
 
   shop() {
     const items = this.shopItems(), s = this.stats, ui = this.ui;
-    let redraw = false;
+    let redraw = false, picked = false;
+    if (this.shopPick !== undefined) { this.shopSel = this.shopPick; this.shopPick = undefined; picked = true; }
     if (Input.pressed('down')) { this.shopSel = (this.shopSel + 1) % items.length; redraw = true; Sound.play('select'); }
     if (Input.pressed('up')) { this.shopSel = (this.shopSel + items.length - 1) % items.length; redraw = true; Sound.play('select'); }
     const close = () => { this.mode = 'play'; ui.shop(null); };
     if (Input.pressed('pause')) return close();
-    if (Input.pressed('start') || Input.pressed('jump') || Input.pressed('attack')) {
+    if (picked || Input.pressed('start') || Input.pressed('jump') || Input.pressed('attack')) {
       const it = items[this.shopSel];
       if (it.id === 'leave') return close();
       if (it.off || s.coins < it.cost) Sound.play('deny');

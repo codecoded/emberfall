@@ -477,7 +477,7 @@ function drawShop(g) {
   const it = items[s.sel];
   text(g, s.noteT > 0 ? s.note : it.d, W / 2, y + h - 24, { color: s.noteT > 0 ? EMBER : JADE, align: 'c' });
   drawSpr(g, SPR.coin, G.tick / 8 | 0, x + 14, y + h - 9); text(g, 'GOLD ' + st.coins, x + 22, y + h - 12, { color: GOLD });
-  text(g, 'ENTER:BUY  ESC:LEAVE', x + w - 10, y + h - 12, { color: '#867', align: 'r' });
+  text(g, (G.touch ? 'JUMP:BUY  II:LEAVE' : 'ENTER:BUY  ESC:LEAVE'), x + w - 10, y + h - 12, { color: '#867', align: 'r' });
 }
 
 function drawTitle(g) {
@@ -495,8 +495,8 @@ function drawTitle(g) {
     if (gx > 8 && gx < logo.width - 8) { const X = Math.round((W - logo.width) / 2 + gx); g.fillStyle = '#fff'; g.fillRect(X - 3, gy, 7, 1); g.fillRect(X, gy - 3, 1, 7); g.fillRect(X - 1, gy - 1, 3, 3); }
   }
   text(g, 'C L A S S I C', W / 2, ly + logo.height + 1, { color: SILVER, align: 'c', outline: '#102' });
-  if ((t >> 5) & 1) text(g, 'PRESS ENTER TO BEGIN', W / 2, 128, { color: GOLD, align: 'c', outline: '#102' });
-  text(g, 'ESC: BACK TO MENU', W / 2, 142, { color: '#bbd', align: 'c', outline: '#102' });
+  if ((t >> 5) & 1) text(g, (G.touch ? 'TAP TO BEGIN' : 'PRESS ENTER TO BEGIN'), W / 2, 128, { color: GOLD, align: 'c', outline: '#102' });
+  text(g, (G.touch ? '' : 'ESC: BACK TO MENU'), W / 2, 142, { color: '#bbd', align: 'c', outline: '#102' });
   // sine scroller with copper colours
   const msg = '      WELCOME TO EMBERFALL ... A PIXEL TALE OF RUNE STONES, COLD STEEL AND AN ASHEN KEEP ...  ARROWS OR WASD TO MOVE - SPACE OR Z TO LEAP - X TO STRIKE - DOWN TO CROUCH - UP TO TRADE WITH THE WANDERER ...  ALL ART AND SOUND ARE CONJURED BY CODE - NO BITMAPS WERE HARMED ...  GREETINGS TO EVERY KNIGHT WHO EVER LOADED A DISK AND WAITED PATIENTLY ...      ';
   const sp = (t * 1.3) % (msg.length * 12);
@@ -519,7 +519,7 @@ function drawStory(g) {
   const lines = STORY[G.page];
   let left = Math.floor(G.t / 2);
   lines.forEach((l, i) => { if (left <= 0) return; text(g, l.slice(0, left), W / 2 - textW(l) / 2, 60 + i * 13, { color: i < 3 && G.page === 0 ? GOLD : SILVER, shadow: '#000' }); left -= l.length; });
-  if ((G.tick >> 4) & 1) text(g, 'ENTER', W - 54, 152, { color: EMBER, align: 'r' });
+  if ((G.tick >> 4) & 1) text(g, G.touch ? 'TAP' : 'ENTER', W - 54, 152, { color: EMBER, align: 'r' });
   drawHumanoid(g, heroPose('idle', G.tick / 60, 0, 0), { arm: ARMOUR[0], blade: BLADE[0] }, 62, 160, false, false);
 }
 
@@ -535,7 +535,7 @@ function drawTally(g) {
   const rows = [['GOLD', String(st.coins)], ['FOES SLAIN', String(st.kills)], ['TIME', `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`], ['LIVES', String(Math.max(0, st.lives))]];
   rows.forEach((r, i) => { if (G.t < 14 + i * 12) return; text(g, r[0], 100, 90 + i * 14, { color: '#bbd' }); text(g, r[1], W - 100, 90 + i * 14, { color: GOLD, align: 'r' }); });
   drawSpr(g, SPR.rune, G.tick / 8 | 0, W / 2, 150 + Math.sin(G.tick * 0.08) * 2);
-  if (G.t > 60 && (G.tick >> 4) & 1) text(g, 'PRESS ENTER', W / 2, 167, { color: EMBER, align: 'c' });
+  if (G.t > 60 && (G.tick >> 4) & 1) text(g, (G.touch ? 'TAP TO CONTINUE' : 'PRESS ENTER'), W / 2, 167, { color: EMBER, align: 'c' });
 }
 
 export function render(g) {
@@ -552,7 +552,7 @@ export function render(g) {
         dim(g, 0.6); frame(g, 92, 50, 200, 116);
         text(g, 'PAUSED', W / 2, 60, { color: GOLD, align: 'c', scale: 2, shadow: '#000' });
         ['ARROWS / WASD   MOVE', 'SPACE / Z / UP  JUMP', 'X / J           STRIKE', 'DOWN            CROUCH', 'DOWN + JUMP     DROP', 'M MUTE  F FULL  C CRT'].forEach((l, i) => text(g, l, 110, 84 + i * 11, { color: '#bbd' }));
-        text(g, 'P OR ESC TO RESUME', W / 2, 152, { color: EMBER, align: 'c' });
+        text(g, (G.touch ? 'TAP II TO RESUME' : 'P OR ESC TO RESUME'), W / 2, 152, { color: EMBER, align: 'c' });
       }
       break;
     case 'tally': drawTally(g); break;
@@ -561,7 +561,7 @@ export function render(g) {
       for (let y = 0; y < H; y += 2) { g.fillStyle = P(['#100', '#200', '#301', '#200'][((y + G.t) >> 4) & 3]); g.fillRect(0, y, W, 1); }
       text(g, 'GAME OVER', W / 2, 70, { color: EMBER, align: 'c', scale: 4, shadow: '#000' });
       text(g, 'THE EMBER FADES...', W / 2, 114, { color: '#b88', align: 'c' });
-      if ((G.t >> 4) & 1) text(g, 'ENTER: CONTINUE   ESC: TITLE', W / 2, 150, { color: GOLD, align: 'c' });
+      if ((G.t >> 4) & 1) text(g, (G.touch ? 'TAP TO CONTINUE' : 'ENTER: CONTINUE   ESC: TITLE'), W / 2, 150, { color: GOLD, align: 'c' });
       break;
     case 'ending': {
       G.cam.x = 0; G.cam.y = 118; drawWorld(g, false); dim(g, 0.3);
@@ -569,7 +569,7 @@ export function render(g) {
       const L = ['MALGRIM IS UNDONE AND THE THREE', 'RUNE STONES BURN AS ONE.', '', 'THE EMBER RISES OVER THE WOODS,', 'AND SIR ALDRIC WALKS HOME', 'BENEATH A WARMER SKY.', '', `GOLD GATHERED: ${G.st.coins}`];
       L.forEach((l, i) => { if (G.t > 30 + i * 22) text(g, l, W / 2, 62 + i * 12, { color: i === 7 ? GOLD : SILVER, align: 'c', outline: '#102' }); });
       drawHumanoid(g, heroPose('idle', G.tick / 60, 0, 0), { arm: ARMOUR[G.st.armour], blade: BLADE[G.st.sword] }, 58, 171, false, false);
-      if (G.t > 220 && (G.tick >> 4) & 1) text(g, 'PRESS ENTER', W / 2, 204, { color: EMBER, align: 'c', outline: '#102' });
+      if (G.t > 220 && (G.tick >> 4) & 1) text(g, (G.touch ? 'TAP' : 'PRESS ENTER'), W / 2, 204, { color: EMBER, align: 'c', outline: '#102' });
       break;
     }
   }

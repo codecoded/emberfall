@@ -34,6 +34,9 @@ Live at https://codecoded.github.io/emberfall/
 
 A gamepad works too (stick/d-pad, A to jump, X/B to attack).
 
+On phones and tablets both versions show touch controls (thumb pad, JUMP, SWORD, pause) and scale to the
+screen; landscape gives the widest view. `src/touch.js` is shared (copied to `pixel/src/touch.js`).
+
 ## Modern version layout
 
 ```

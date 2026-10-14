@@ -4,6 +4,7 @@ import { audio } from './audio.js';
 import { G, init, update, render, debug, loadLevel } from './game.js';
 import { buildLevel, LEVEL_DEFS } from './levels.js';
 import { checkLevel } from './reach.js';
+import { initTouch } from './touch.js';
 
 const canvas = document.getElementById('screen');
 const stage = document.getElementById('stage');
@@ -11,14 +12,23 @@ const g = canvas.getContext('2d', { willReadFrequently: true });
 g.imageSmoothingEnabled = false;
 
 function fit() {
-  const s = Math.max(1, Math.floor(Math.min(window.innerWidth / W, window.innerHeight / H)));
+  // whole-pixel scaling on big screens; on phones fill the screen instead of leaving a tiny picture
+  const exact = Math.min(window.innerWidth / W, window.innerHeight / H);
+  const whole = Math.max(1, Math.floor(exact));
+  const s = whole / exact < 0.8 || document.documentElement.classList.contains('touch') ? exact : whole;
   stage.style.width = W * s + 'px'; stage.style.height = H * s + 'px';
   stage.style.setProperty('--s', s + 'px');
 }
-window.addEventListener('resize', fit); fit();
+window.addEventListener('resize', fit); window.addEventListener('orientationchange', () => setTimeout(fit, 250)); fit();
 
 input.attach(window);
 input.onFirstGesture = () => { audio.init(); };
+initTouch({
+  set: (a, v) => { audio.init(); input.set(a, v); },
+  tap: (a) => { audio.init(); input.press(a); },
+  isPlaying: () => G.state === 'play',
+  onActive: () => { G.touch = true; fit(); },
+});
 
 function hotkeys() {
   if (input.hit('fs')) { if (document.fullscreenElement) document.exitFullscreen(); else if (stage.requestFullscreen) stage.requestFullscreen().catch(() => {}); }

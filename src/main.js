@@ -15,10 +15,14 @@ import { Sound } from './audio.js';
 import { FX } from './fx.js';
 import { createUI } from './ui.js';
 import { Game } from './game.js';
+import { initTouch } from './touch.js';
+
+const MOBILE = matchMedia('(pointer: coarse)').matches && matchMedia('(hover: none)').matches;
+window.__lowPower = MOBILE;
 
 const ui = createUI(document.getElementById('ui'));
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.5 : 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -40,10 +44,14 @@ const fx = new FX(scene);
 function resize() {
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h); composer.setSize(w, h);
-  camera.aspect = w / h; camera.updateProjectionMatrix();
+  camera.aspect = w / h;
+  // on narrow (portrait) screens widen the lens so the hero can still see what is coming
+  camera.fov = Math.min(76, Math.max(28, 2 * Math.atan(8.5 / (24.5 * camera.aspect)) * 180 / Math.PI));
+  camera.updateProjectionMatrix();
   fx.resize(h * renderer.getPixelRatio());
 }
 addEventListener('resize', resize);
+addEventListener('orientationchange', () => setTimeout(resize, 250));
 resize();
 
 function applyTheme(T) {
@@ -56,6 +64,12 @@ await loadAssets((f) => ui.loading(f * 0.9));
 const game = new Game({ scene, camera, fx, ui, applyTheme });
 window.__game = game;
 Input.onAny(() => Sound.init());
+initTouch({
+  set: (a, v) => Input.set(a, v),
+  tap: (a) => { Sound.init(); Input.tap(a); },
+  isPlaying: () => game.mode === 'play' || game.mode === 'shop' || game.mode === 'pause',
+  onActive: () => ui.touchMode(),
+});
 ui.loading(1);
 
 const STEP = 1 / 60;

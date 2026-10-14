@@ -4,6 +4,8 @@ const HEART = '<svg viewBox="0 0 24 22"><path d="M12 21 2.4 11.2A5.8 5.8 0 0 1 1
 
 export function createUI(root) {
   root.innerHTML = '';
+  let touch = false, onPick = null;
+  const go = () => (touch ? 'Tap' : 'Press Enter');
   const hud = el('div', 'hud');
   const hearts = el('div', 'hearts');
   const right = el('div', 'hud-right');
@@ -18,6 +20,7 @@ export function createUI(root) {
   const boss = el('div', 'boss', '<span>Malgrim, the Ashen Sorcerer</span><div><i></i></div>');
   const title = el('div', 'screen title', `
     <div class="logo"><h1>Emberfall</h1><h2>Legend of the Rune Knight</h2></div>
+    <p class="rotate">↻ Turn your device sideways for a wider view</p>
     <p class="press">Press Enter</p>
     <p class="keys"><b>←→</b> move &nbsp; <b>Space</b> jump &nbsp; <b>X</b> sword &nbsp; <b>↓</b> crouch &nbsp; <b>↑</b> trade &nbsp; <b>P</b> pause &nbsp; <b>M</b> mute &nbsp; <b>F</b> fullscreen</p>
     <a class="alt" href="../">◂ choose version</a>`);
@@ -37,7 +40,10 @@ export function createUI(root) {
 
   let last = '', bannerT = 0, toastT = 0, hintText = '';
   const show = (e, on) => e.classList.toggle('show', !!on);
+  shop.addEventListener('pointerdown', (e) => { const it = e.target.closest('.item'); if (it && onPick) onPick(+it.dataset.i); });
   return {
+    touchMode() { touch = true; for (const p of root.querySelectorAll('.press')) p.textContent = p.textContent.replace('Press Enter', 'Tap').replace('Press P to resume', 'Tap II to resume'); },
+    onShopPick(fn) { onPick = fn; },
     loading(f) { if (f >= 1) show(loading, false); else loading.querySelector('i').style.width = Math.round(f * 100) + '%'; },
     hud(s, visible) {
       const key = [s.hp, s.maxHp, s.coins, s.lives, s.rune, visible].join();
@@ -65,16 +71,16 @@ export function createUI(root) {
       show(shop, !!items);
       if (!items) return;
       shop.innerHTML = `<h3>The Wandering Merchant</h3><div class="gold"><i></i>${gold}</div>` + items.map((it, i) => `
-        <div class="item ${i === sel ? 'sel' : ''} ${it.off || (it.cost && it.cost > gold) ? 'dim' : ''}">
-          <b>${it.name}</b><span>${it.off ? it.off : it.cost ? it.cost + ' <i></i>' : ''}</span><p>${it.desc}</p></div>`).join('') + '<small>↑↓ choose · Space buy · Esc leave</small>';
+        <div data-tap data-i="${i}" class="item ${i === sel ? 'sel' : ''} ${it.off || (it.cost && it.cost > gold) ? 'dim' : ''}">
+          <b>${it.name}</b><span>${it.off ? it.off : it.cost ? it.cost + ' <i></i>' : ''}</span><p>${it.desc}</p></div>`).join('') + `<small>${touch ? 'Tap an item to buy' : '↑↓ choose · Space buy · Esc leave'}</small>`;
     },
     clear(d) {
       show(clear, !!d);
-      if (d) clear.innerHTML = `<small>Realm cleared</small><h3>${d.name}</h3><hr><p>Gold gathered <b>${d.coins}</b> &nbsp;·&nbsp; Foes felled <b>${d.kills}</b></p><p class="press">Press Enter for ${d.next}</p>`;
+      if (d) clear.innerHTML = `<small>Realm cleared</small><h3>${d.name}</h3><hr><p>Gold gathered <b>${d.coins}</b> &nbsp;·&nbsp; Foes felled <b>${d.kills}</b></p><p class="press">${go()} for ${d.next}</p>`;
     },
     ending(on, s) {
       show(ending, on);
-      if (on) ending.innerHTML = `<h1>Dawn Returns</h1><p>Malgrim is undone. The Ember Crown burns once more above Valdris, and the long night lifts from the three realms.</p><p>You finished with <b>${s.coins}</b> gold and <b>${Math.max(0, s.lives)}</b> lives to spare.</p><p class="press">Press Enter to play again</p>`;
+      if (on) ending.innerHTML = `<h1>Dawn Returns</h1><p>Malgrim is undone. The Ember Crown burns once more above Valdris, and the long night lifts from the three realms.</p><p>You finished with <b>${s.coins}</b> gold and <b>${Math.max(0, s.lives)}</b> lives to spare.</p><p class="press">${go()} to play again</p>`;
     },
   };
 }

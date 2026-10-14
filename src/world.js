@@ -404,7 +404,8 @@ export function buildWorld(L) {
   const key = new THREE.DirectionalLight(T.key[0], T.key[1]);
   const kd = new THREE.Vector3(...T.key[2]).normalize();
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  const sm = window.__lowPower ? 1024 : 2048;
+  key.shadow.mapSize.set(sm, sm);
   const sc = key.shadow.camera; sc.left = -26; sc.right = 26; sc.top = 22; sc.bottom = -16; sc.near = 1; sc.far = 110;
   key.shadow.bias = -0.0005; key.shadow.normalBias = 0.05;
   add(key); add(key.target);

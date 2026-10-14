@@ -8,7 +8,7 @@ const DEFS = [
   {
     name: 'Whispering Woods', theme: 'woods', music: 'woods', liquidY: 3.4,
     segs: [
-      [14, 6, { e: [['sign', 8, 0, { text: 'Arrows / WASD to move · Space to jump · X to swing your blade' }]] }],
+      [14, 6, { e: [['sign', 8, 0, { text: 'Arrows / WASD to move · Space to jump · X to swing your blade', touchText: 'Thumb pad to move · JUMP to leap · SWORD to strike' }]] }],
       [6, 7, { coins: [[1, 1.5, 4]] }],
       [9, 6, { e: [['slime', 5]] }],
       [4, 0, { liquid: 1, arc: [0, 1.5, 4] }],
@@ -17,7 +17,7 @@ const DEFS = [
       [4, 10, { coins: [[1, 1.5, 2]] }],
       [10, 8, { e: [['bat', 5, 5], ['plant', 8]] }],
       [3, 0, { liquid: 1 }],
-      [9, 7, { e: [['shrine', 2], ['merchant', 6], ['sign', 4, 0, { text: 'Press Up beside the merchant to trade' }]] }],
+      [9, 7, { e: [['shrine', 2], ['merchant', 6], ['sign', 4, 0, { text: 'Press Up beside the merchant to trade', touchText: 'Push the pad up beside the merchant to trade' }]] }],
       [6, 0, { liquid: 1, mp: [[0.5, 0, 2.5, 'x', 3, 2.2]], arc: [1, 2, 4] }],
       [12, 7, { e: [['slime', 3], ['skel', 8]], coins: [[8, 1.5, 3]] }],
       [18, 6, { p: [[2, 3, 3], [7, 6, 3], [12, 9, 5, 'solid']], e: [['rune', 14, 10.4], ['bat', 9, 10], ['plant', 16], ['sign', 1, 0, { text: 'The Rune Stone lies above. The portal will not open without it.' }]], coins: [[2, 4.2, 3], [7, 7.2, 3]] }],

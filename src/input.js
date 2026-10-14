@@ -5,7 +5,7 @@ const MAP = {
   KeyM: 'mute', KeyF: 'full',
 };
 const ACTIONS = [...new Set(Object.values(MAP))];
-const held = {}, queued = {}, now = {}, prev = {};
+const held = {}, queued = {}, now = {}, prev = {}, virt = {};
 let onAny = null;
 
 addEventListener('keydown', (e) => {
@@ -31,10 +31,13 @@ function pad() {
 export const Input = {
   update() {
     const p = pad();
-    for (const a of ACTIONS) { prev[a] = now[a]; now[a] = !!(held[a] || queued[a] || p[a]); queued[a] = false; }
+    for (const a of ACTIONS) { prev[a] = now[a]; now[a] = !!(held[a] || virt[a] || queued[a] || p[a]); queued[a] = false; }
   },
   down: (a) => !!now[a],
   pressed: (a) => !!now[a] && !prev[a],
   released: (a) => !now[a] && !!prev[a],
   onAny(fn) { onAny = fn; },
+  // touch controls
+  set(a, v) { if (v && !virt[a]) queued[a] = true; virt[a] = !!v; },
+  tap(a) { queued[a] = true; },
 };
