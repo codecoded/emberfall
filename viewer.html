@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8"><title>asset viewer</title>
+<style>html,body{margin:0;height:100%;background:#223;overflow:hidden}canvas{display:block}</style></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const q = new URLSearchParams(location.search);
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); document.body.appendChild(r.domElement);
+r.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#5a6688');
+scene.add(new THREE.HemisphereLight('#cfe0ff', '#3a3040', 1.6));
+const sun = new THREE.DirectionalLight('#fff0d0', 2.6); sun.position.set(-3, 5, 4); scene.add(sun);
+const { RoomEnvironment } = await import('three/addons/environments/RoomEnvironment.js');
+scene.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.6;
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 500);
+const cols = +(q.get('cols') || 1), cell = +(q.get('cell') || 3);
+const yaw = +(q.get('yaw') ?? 60) * Math.PI / 180;
+const mixers = [];
+const g = await new GLTFLoader().loadAsync('/assets/' + (q.get('m') || 'hero') + '.glb');
+window.gltf = g;
+const anims = (q.get('a') || '').split(',').filter(Boolean);
+const only = q.get('o');
+const { clone } = await import('three/addons/utils/SkeletonUtils.js');
+let n = 0, items = [];
+if (g.animations.length && !only) {
+  const list = anims.length ? anims : g.animations.map(a => a.name);
+  const ts = (q.get('t') || '').split(',').filter(Boolean).map(Number);
+  list.forEach((name, i) => { const o = clone(g.scene); const m = new THREE.AnimationMixer(o); const c = THREE.AnimationClip.findByName(g.animations, name);
+    const act = m.clipAction(c); act.play(); if (ts.length) { act.paused = true; act.time = (ts[i] ?? ts[0]) * c.duration; m.update(0); } mixers.push(m); items.push(o); });
+} else {
+  const names = only ? only.split(',') : g.scene.children.map(c => c.name).filter(n => !q.get('f') || new RegExp(q.get('f')).test(n));
+  for (const nm of names) { const o = g.scene.getObjectByName(nm); if (o) { const c = o.clone(); c.position.set(0, 0, 0); const bb = new THREE.Box3().setFromObject(c); const sc = q.get('norm') ? 2 / Math.max(bb.max.x - bb.min.x, bb.max.y - bb.min.y, 0.5) : 1; c.scale.setScalar(sc); c.position.y = -bb.min.y * sc; items.push(c); } }
+}
+items.forEach((o, i) => { const h = new THREE.Group(); h.add(o); h.rotation.y = yaw; h.position.set((i % cols) * cell, -Math.floor(i / cols) * cell, 0); scene.add(h); });
+const box = new THREE.Box3();
+if (mixers.length) { const rows = Math.ceil(items.length / cols), cc = Math.min(cols, items.length); box.set(new THREE.Vector3(-1.1, -(rows - 1) * cell - 0.1, -1), new THREE.Vector3((cc - 1) * cell + 1.1, 2.1, 1)); }
+else box.setFromObject(scene);
+const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+const dist = Math.max(s.y, s.x / cam.aspect) / (2 * Math.tan(15 * Math.PI / 180)) * 1.15 + s.z;
+cam.position.set(c.x, c.y + dist * 0.12, c.z + dist); cam.lookAt(c);
+const clock = new THREE.Clock();
+r.setAnimationLoop(() => { const dt = clock.getDelta(); mixers.forEach(m => m.update(dt)); r.render(scene, cam); });
+window.ready = true;
+</script></body></html>
